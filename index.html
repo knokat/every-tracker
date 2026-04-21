@@ -54,6 +54,13 @@
       padding-bottom: calc(24px + var(--safe-bottom));
     }
 
+    /* Desktop: breitere Ansicht, mehr Bowls nebeneinander */
+    @media (min-width: 768px) {
+      .app {
+        max-width: 1400px;
+      }
+    }
+
     /* Header */
     .app-header {
       padding: 22px 20px 14px;
@@ -187,6 +194,12 @@
       padding: 0 8px;
     }
 
+    /* Responsive: mehr Spalten bei größeren Bildschirmen */
+    @media (min-width: 521px)  { .bowls-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+    @media (min-width: 769px)  { .bowls-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1025px) { .bowls-grid { grid-template-columns: repeat(5, 1fr); gap: 14px; } }
+    @media (min-width: 1281px) { .bowls-grid { grid-template-columns: repeat(6, 1fr); } }
+
     /* Bowl card */
     .bowl-card {
       background: var(--bg-card);
@@ -279,6 +292,18 @@
     .tag.planted { background: #F3E7DD; color: var(--planted); }
     .tag.mushroom { background: #F3EEE4; color: var(--text-muted); }
     .tag.excluded { background: #FAE8E8; color: var(--danger); }
+    .tag.nutrition-check { background: #FDF0D8; color: var(--warn); }
+
+    .nutrition-check-warning {
+      background: #FDF0D8;
+      border-left: 3px solid var(--warn);
+      color: #8B4D04;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
 
     .bowl-actions {
       display: flex;
@@ -324,6 +349,16 @@
       flex-direction: column;
       animation: slideUp 0.25s ease-out;
       overflow: hidden;
+    }
+    /* Desktop: Sheet zentriert als Modal statt Bottom-Sheet */
+    @media (min-width: 768px) {
+      .sheet-overlay { align-items: center; }
+      .sheet {
+        max-width: 560px;
+        max-height: 88vh;
+        border-radius: var(--radius-lg);
+        animation: fadeIn 0.2s ease-out;
+      }
     }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .sheet-header {
