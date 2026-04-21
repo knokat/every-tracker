@@ -30,6 +30,7 @@ function BowlCard({ bowl, qty, onInc, onDec, onSelect }) {
         ${bowl.has_planted ? html`<span class="tag planted">planted.pulled</span>` : null}
         ${bowl.has_mushrooms ? html`<span class="tag mushroom">🍄 Pilze</span>` : null}
         ${!bowl.combo_suitable ? html`<span class="tag excluded">nur für Matthias</span>` : null}
+        ${bowl.needs_nutrition_check ? html`<span class="tag nutrition-check" title="Nährwerte bei nächstem Kauf prüfen">⚠️ Nährwerte prüfen</span>` : null}
       </div>
       <div class="bowl-actions" onclick=${(e) => e.stopPropagation()}>
         <button class="qty-btn minus" onclick=${() => onDec(bowl.slug)} disabled=${qty === 0}>−</button>
@@ -78,6 +79,11 @@ function BowlDetailSheet({ bowl, qty, onClose, onInc, onDec, onSetQty }) {
           </div>
 
           <h3 class="sheet-section-title">Nährwerte</h3>
+          ${bowl.needs_nutrition_check ? html`
+            <div class="nutrition-check-warning">
+              ⚠️ Die Nährwerte dieser Bowl könnten sich geändert haben. Bitte beim nächsten Kauf auf every-foods.com prüfen und ggf. in der DB korrigieren.
+            </div>
+          ` : null}
           <table class="macros-table">
             <thead>
               <tr><th></th><th>Ganze Packung (${bowl.weight_g}g)</th><th>¾ Portion (${bowl34.weight_g}g)</th></tr>
