@@ -5,6 +5,9 @@
 //   - regular: kein planted.pulled → jedes Topping möglich
 //   - excluded_from_combos: ungeeignet für Topping-Konzept (zu wenig P oder zu viele kcal)
 //   - mushrooms: enthält Pilze (kann Katja weiterhin essen)
+// Flags:
+//   - needs_nutrition_check: true → Nährwerte in DB weichen ab (Stand April 2026),
+//     beim nächsten Kauf auf every-foods.com Produktseite gegenprüfen und ggf. korrigieren
 
 export const BOWLS = [
   // ==== PASTA & NOODLES ====
@@ -36,8 +39,8 @@ export const BOWLS = [
   { slug: "red-curry", name: "Red Curry", desc: "Mildes rotes Curry mit planted.pulled.", weight_g: 450, kcal: 518, protein: 24.8, carbs: 52.7, fat: 21.2, category: "curry", has_planted: true, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/3ddc983dc2dbb1b9cc00f74129148c0cf585e14b-1625x1625.png?w=500&auto=format" },
   { slug: "golden-curry", name: "Golden Curry", desc: "Mildes gelbes Curry.", weight_g: 450, kcal: 423, protein: 13.1, carbs: 55, fat: 15, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/c5c3f6387018f47bfa4fade6bdc1bc08ca2e4136-1625x1625.png?w=500&auto=format" },
   { slug: "dal-delight-bowl", name: "Dal Delight", desc: "Indisches Dal mit roten Linsen, Bohnen, Süßkartoffel und Spinat.", weight_g: 450, kcal: 493, protein: 23.9, carbs: 60, fat: 15, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/7a59ffa482ca3a20dcddc6e3d44c502840ab46cc-1625x1625.png?w=500&auto=format" },
-  { slug: "green-dal", name: "Green Dal", desc: "Braune Linsen mit Spinat, Grünkohl, Pastinaken & Kokos.", weight_g: 450, kcal: 450, protein: 20, carbs: 50, fat: 18, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/28c7a78ff22c9da0e2fccf7f6aed23b626780869-1625x1625.png?w=500&auto=format" },
-  { slug: "sweet-lentil-dal", name: "Sweet Lentil Dal", desc: "Rote & braune Linsen mit Zucchini, Apfel, Karotten und Kichererbsen.", weight_g: 500, kcal: 470, protein: 19, carbs: 58, fat: 16, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/c733c38b157c4ac538a21584f01f33fb151e4ddb-1625x1625.png?w=500&auto=format" },
+  { slug: "green-dal", name: "Green Dal", desc: "Braune Linsen mit Spinat, Grünkohl, Pastinaken & Kokos.", weight_g: 450, kcal: 450, protein: 20, carbs: 50, fat: 18, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, needs_nutrition_check: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/28c7a78ff22c9da0e2fccf7f6aed23b626780869-1625x1625.png?w=500&auto=format" },
+  { slug: "sweet-lentil-dal", name: "Sweet Lentil Dal", desc: "Rote & braune Linsen mit Zucchini, Apfel, Karotten und Kichererbsen.", weight_g: 500, kcal: 470, protein: 19, carbs: 58, fat: 16, category: "curry", has_planted: false, has_mushrooms: false, combo_suitable: true, needs_nutrition_check: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/c733c38b157c4ac538a21584f01f33fb151e4ddb-1625x1625.png?w=500&auto=format" },
 
   // ==== SIGNATURE BOWLS ====
   { slug: "smoky-lentil-stew", name: "Smoky Lentil Stew", desc: "Rauchiger Linseneintopf.", weight_g: 450, kcal: 374, protein: 23.9, carbs: 50, fat: 8, category: "signature", has_planted: false, has_mushrooms: false, combo_suitable: true, img: "https://cdn.sanity.io/images/eiijw0fc/production/84bfa671ca4449dbc98a92f54cb5a5c7752d0e23-890x890.png?w=500&auto=format" },
