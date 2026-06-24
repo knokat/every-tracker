@@ -1,14 +1,13 @@
 // Every Tracker – Main App Component
 
 import { html, render, useState, useEffect, useMemo } from 'https://unpkg.com/htm/preact/standalone.module.js';
-import { BOWLS, TOPPINGS, CATEGORIES, TARGET_KCAL, TARGET_PROTEIN } from './bowls.js';
+import { BOWLS } from './bowls.js';
 import { loadInventory, adjustQuantity, setQuantity } from './db.js';
-import { threeQuarterPortion, validCombos, bowlImage, r1, r0 } from './helpers.js';
+import { per100g, bowlImage, r1 } from './helpers.js';
 
 // ================== Components ==================
 
 function BowlCard({ bowl, qty, onInc, onDec, onSelect }) {
-  const bowl34 = threeQuarterPortion(bowl);
   const hasStock = qty > 0;
   const img = bowlImage(bowl, 220);
 
@@ -42,8 +41,7 @@ function BowlCard({ bowl, qty, onInc, onDec, onSelect }) {
 
 function BowlDetailSheet({ bowl, qty, onClose, onInc, onDec, onSetQty }) {
   if (!bowl) return null;
-  const bowl34 = threeQuarterPortion(bowl);
-  const combos = bowl.combo_suitable ? validCombos(bowl, TOPPINGS) : [];
+  const p100 = per100g(bowl);
   const img = bowlImage(bowl, 400);
   const [editQty, setEditQty] = useState(false);
   const [qtyValue, setQtyValue] = useState(qty);
@@ -86,63 +84,28 @@ function BowlDetailSheet({ bowl, qty, onClose, onInc, onDec, onSetQty }) {
           ` : null}
           <table class="macros-table">
             <thead>
-              <tr><th></th><th>Ganze Packung (${bowl.weight_g}g)</th><th>¾ Portion (${bowl34.weight_g}g)</th></tr>
+              <tr><th></th><th>pro 100 g</th><th>ganze Bowl (${bowl.weight_g} g)</th></tr>
             </thead>
             <tbody>
-              <tr><td>Kalorien</td><td>${bowl.kcal} kcal</td><td>${bowl34.kcal} kcal</td></tr>
-              <tr><td>Protein</td><td>${r1(bowl.protein)}g</td><td>${bowl34.protein}g</td></tr>
-              <tr><td>Kohlenhydrate</td><td>${r1(bowl.carbs)}g</td><td>${bowl34.carbs}g</td></tr>
-              <tr><td>Fett</td><td>${r1(bowl.fat)}g</td><td>${bowl34.fat}g</td></tr>
+              <tr><td>Kalorien</td><td>${p100.kcal} kcal</td><td>${bowl.kcal} kcal</td></tr>
+              <tr><td>Protein</td><td>${p100.protein} g</td><td>${r1(bowl.protein)} g</td></tr>
+              <tr><td>Kohlenhydrate</td><td>${p100.carbs} g</td><td>${r1(bowl.carbs)} g</td></tr>
+              <tr><td>Fett</td><td>${p100.fat} g</td><td>${r1(bowl.fat)} g</td></tr>
             </tbody>
           </table>
-
-          ${bowl.combo_suitable ? html`
-            <h3 class="sheet-section-title">Topping-Kombinationen <span class="target-hint">Ziel: ${TARGET_KCAL} kcal, ${TARGET_PROTEIN}g P</span></h3>
-            ${combos.length === 0 ? html`
-              <div class="no-combos">Keine passenden Kombinationen gefunden.</div>
-            ` : html`
-              <div class="combos-list">
-                ${combos.map(c => html`
-                  <div class="combo-row">
-                    <div class="combo-name">${c.topping.name}</div>
-                    <div class="combo-amount">${c.totals.topping_grams}g</div>
-                    <div class="combo-totals">
-                      <span class="combo-kcal ${Math.abs(c.totals.kcal_diff) > 30 ? 'off' : 'ok'}">${c.totals.total_kcal} kcal</span>
-                      <span class="combo-protein ${c.totals.total_protein < TARGET_PROTEIN - 2 ? 'off' : 'ok'}">${c.totals.total_protein}g P</span>
-                    </div>
-                  </div>
-                `)}
-              </div>
-            `}
-          ` : html`
-            <div class="excluded-note">
-              Diese Bowl ist nicht fürs ¾-Konzept geeignet (zu wenig Protein oder zu viele Kalorien).
-              Matthias kann sie ganz essen.
-            </div>
-          `}
         </div>
       </div>
     </div>
   `;
 }
 
-function FilterBar({ activeFilter, setActiveFilter, showEmpty, setShowEmpty }) {
+function SearchBar({ value, onInput }) {
   return html`
-    <div class="filter-bar">
-      <div class="filter-group">
-        <div class="filter-label">Filter:</div>
-        <div class="chip ${activeFilter === null ? 'active' : ''}" onclick=${() => setActiveFilter(null)}>Alle</div>
-        ${TOPPINGS.map(t => html`
-          <div class="chip ${activeFilter === t.id ? 'active' : ''}"
-               onclick=${() => setActiveFilter(activeFilter === t.id ? null : t.id)}>
-            ${t.name}
-          </div>
-        `)}
-      </div>
-      <label class="toggle-row">
-        <input type="checkbox" checked=${showEmpty} onChange=${(e) => setShowEmpty(e.target.checked)} />
-        <span>Leere Bestände anzeigen</span>
-      </label>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="search" class="search-input" placeholder="Bowl suchen…" value=${value}
+        onInput=${(e) => onInput(e.target.value)} />
+      ${value ? html`<button class="search-clear" onclick=${() => onInput('')}>✕</button>` : null}
     </div>
   `;
 }
@@ -178,8 +141,8 @@ function App() {
   const [inventory, setInventory] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedBowl, setSelectedBowl] = useState(null);
-  const [activeFilter, setActiveFilter] = useState(null);
-  const [showEmpty, setShowEmpty] = useState(true);
+  const [search, setSearch] = useState('');
+  const [eatenOpen, setEatenOpen] = useState(true);
 
   // Load inventory on mount
   useEffect(() => {
@@ -189,55 +152,32 @@ function App() {
     });
   }, []);
 
-  // Filtered + sorted bowls
-  const displayedBowls = useMemo(() => {
-    let list = [...BOWLS];
-
-    // Filter by topping compatibility
-    if (activeFilter) {
-      const topping = TOPPINGS.find(t => t.id === activeFilter);
-      list = list.filter(b => {
-        if (!b.combo_suitable) return false;
-        if (b.has_planted && topping.category === "meat") return false;
-        const combos = validCombos(b, [topping]);
-        return combos.length > 0;
-      });
-    }
-
-    // Filter by stock
-    if (!showEmpty) {
-      list = list.filter(b => (inventory[b.slug] || 0) > 0);
-    }
-
-    // Sort: in-stock first, then alphabetically
-    return list.sort((a, b) => {
-      const qa = inventory[a.slug] || 0;
-      const qb = inventory[b.slug] || 0;
-      if (qa !== qb) return qb - qa;
-      return a.name.localeCompare(b.name);
-    });
-  }, [inventory, activeFilter, showEmpty]);
-
-  // Group by category
-  const grouped = useMemo(() => {
-    const groups = { pasta: [], curry: [], signature: [] };
-    displayedBowls.forEach(b => groups[b.category].push(b));
-    return groups;
-  }, [displayedBowls]);
+  // Suche anwenden + nach Bestand splitten, jeweils alphabetisch
+  const { inStock, eaten } = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? BOWLS.filter(b =>
+          b.name.toLowerCase().includes(q) ||
+          (b.desc || '').toLowerCase().includes(q))
+      : BOWLS;
+    const byName = (a, b) => a.name.localeCompare(b.name, 'de');
+    return {
+      inStock: filtered.filter(b => (inventory[b.slug] || 0) > 0).sort(byName),
+      eaten: filtered.filter(b => (inventory[b.slug] || 0) === 0).sort(byName),
+    };
+  }, [inventory, search]);
 
   // Handlers
   const handleInc = async (slug) => {
     const current = inventory[slug] || 0;
-    const newQty = current + 1;
-    setInventory({ ...inventory, [slug]: newQty });
+    setInventory({ ...inventory, [slug]: current + 1 });
     await adjustQuantity(slug, current, 1);
   };
 
   const handleDec = async (slug) => {
     const current = inventory[slug] || 0;
     if (current === 0) return;
-    const newQty = current - 1;
-    setInventory({ ...inventory, [slug]: newQty });
+    setInventory({ ...inventory, [slug]: current - 1 });
     await adjustQuantity(slug, current, -1);
   };
 
@@ -251,6 +191,17 @@ function App() {
     return html`<div class="loading">Lade Bowls...</div>`;
   }
 
+  const card = (bowl) => html`
+    <${BowlCard}
+      key=${bowl.slug}
+      bowl=${bowl}
+      qty=${inventory[bowl.slug] || 0}
+      onInc=${handleInc}
+      onDec=${handleDec}
+      onSelect=${setSelectedBowl}
+    />
+  `;
+
   return html`
     <div class="app">
       <header class="app-header">
@@ -258,43 +209,45 @@ function App() {
           <span class="logo-dot"></span>
           Every Tracker
         </div>
-        <div class="app-subtitle">Inventar &amp; Kombinationen</div>
+        <div class="app-subtitle">Bowl-Inventar</div>
       </header>
 
       <${StatsHeader} inventory=${inventory} />
 
-      <${FilterBar}
-        activeFilter=${activeFilter}
-        setActiveFilter=${setActiveFilter}
-        showEmpty=${showEmpty}
-        setShowEmpty=${setShowEmpty}
-      />
+      <${SearchBar} value=${search} onInput=${setSearch} />
 
       <main class="bowls-grid-wrap">
-        ${Object.entries(grouped).map(([key, bowls]) => bowls.length > 0 && html`
-          <section class="category-section">
-            <h2 class="category-title" style=${`--cat-color: ${CATEGORIES[key].color}`}>
-              <span>${CATEGORIES[key].icon}</span> ${CATEGORIES[key].label}
-              <span class="count">${bowls.length}</span>
+        ${inStock.length > 0 ? html`
+          <section class="stock-section">
+            <h2 class="section-title">
+              <span>Vorrätig</span>
+              <span class="count">${inStock.length}</span>
             </h2>
             <div class="bowls-grid">
-              ${bowls.map(bowl => html`
-                <${BowlCard}
-                  key=${bowl.slug}
-                  bowl=${bowl}
-                  qty=${inventory[bowl.slug] || 0}
-                  onInc=${handleInc}
-                  onDec=${handleDec}
-                  onSelect=${setSelectedBowl}
-                />
-              `)}
+              ${inStock.map(card)}
             </div>
           </section>
-        `)}
-        ${displayedBowls.length === 0 ? html`
+        ` : null}
+
+        ${eaten.length > 0 ? html`
+          <section class="stock-section eaten">
+            <h2 class="section-title collapsible" onclick=${() => setEatenOpen(o => !o)}>
+              <span class="chevron ${eatenOpen ? 'open' : ''}">▸</span>
+              <span>Schon gegessen</span>
+              <span class="count">${eaten.length}</span>
+            </h2>
+            ${eatenOpen ? html`
+              <div class="bowls-grid">
+                ${eaten.map(card)}
+              </div>
+            ` : null}
+          </section>
+        ` : null}
+
+        ${inStock.length === 0 && eaten.length === 0 ? html`
           <div class="empty-state">
-            <div>Keine Bowls gefunden</div>
-            <div class="empty-hint">Probier einen anderen Filter oder zeig leere Bestände.</div>
+            <div>Keine Bowl gefunden</div>
+            <div class="empty-hint">${search ? 'Andere Suche probieren.' : 'Bestand über + hinzufügen.'}</div>
           </div>
         ` : null}
       </main>
