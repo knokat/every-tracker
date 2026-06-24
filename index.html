@@ -557,6 +557,71 @@
       color: var(--text-muted);
     }
 
+    /* Search bar */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 20px 16px;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .search-icon { font-size: 14px; opacity: 0.5; flex: 0 0 auto; }
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      outline: none;
+      min-width: 0;
+    }
+    .search-input::placeholder { color: var(--text-faint); }
+    .search-input::-webkit-search-cancel-button { display: none; }
+    .search-clear {
+      flex: 0 0 auto;
+      width: 22px; height: 22px;
+      border-radius: 11px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Stock section */
+    .stock-section { margin-bottom: 24px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0 20px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title .count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-faint);
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .section-title.collapsible { cursor: pointer; user-select: none; }
+    .section-title .chevron {
+      display: inline-block;
+      transition: transform 0.15s;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+    .section-title .chevron.open { transform: rotate(90deg); }
+    .stock-section.eaten .section-title { color: var(--text-faint); }
+
     /* Mobile touch targets */
     @media (hover: none) {
       .bowl-card:hover { box-shadow: var(--shadow); }
